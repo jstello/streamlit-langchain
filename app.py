@@ -3,7 +3,14 @@ import streamlit as st
 st.title("PDF Summarization Web App")
 
 with st.expander("About"):
-    st.write("This is a web app that summarizes a pdf file. It is built using streamlit and pdfplumber. It is a part of the Langchain project.")
+    st.write(
+        """
+        This is a web app that summarizes a pdf paper regarding the behavior of Concrete Face Rockfill Dams.
+        They are organized by category and can be selected from the dropdown menu. 
+        The summary was generated using the Chat GPT API from OpenAI. The app is not meant to replace 
+        reading the original paper, but rather to give a quick overview of the paper.
+        """
+        )
     
 df = pd.read_csv("summary.csv")
 

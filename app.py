@@ -12,7 +12,7 @@ with st.expander("About"):
         """
         )
     
-df = pd.read_csv("summary.csv")
+df = pd.read_csv("summary2.csv")
 
 # Dropdown menu
 category = st.selectbox("Select a category", df["Category"].unique())

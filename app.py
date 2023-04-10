@@ -5,10 +5,11 @@ st.title("PDF Summarization Web App")
 with st.expander("About"):
     st.write(
         """
-        This is a web app that summarizes a pdf paper regarding the behavior of Concrete Face Rockfill Dams.
+        This is a web app that summarizes a pdf paper on the behavior of Concrete Face Rockfill Dams.
         They are organized by category and can be selected from the dropdown menu. 
         The summary was generated using the Chat GPT API from OpenAI. The app is not meant to replace 
-        reading the original paper, but rather to give a quick overview of the paper.
+        reading the original paper, but rather to help guide the user in selecting 
+        a particular paper to read.
         """
         )
     

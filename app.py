@@ -22,8 +22,15 @@ df_selected = df[df['Category'] == category]
 
 file = st.selectbox("Select a file from a total of " + str(len(df_selected)) + " files", df_selected["title"].unique())
 
-st.success(df_selected[df_selected['title'] == file]["summary"].values[0])
+summary = df_selected[df_selected['title'] == file]["summary"].values[0]
+st.success(summary)
 
-st.write("The original file can be found here: " + df_selected[df_selected['title'] == file]["file_path"].values[0])
+pdf_file = df_selected[df_selected['title'] == file]["file_path"].values[0]
+
+st.session_state["pdf_file"] = pdf_file
+st.session_state["title"] = df_selected[df_selected['file_path'] == pdf_file]["title"].values[0]
+st.session_state["summary"] = summary
+
+st.write("The original file can be found here: " + pdf_file)
 
 st.write()

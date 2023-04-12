@@ -8,7 +8,9 @@ from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredPDFLoader
 from langchain.vectorstores import Chroma
+import glob
 
+files = glob.glob("ICOLD - CFRD New Bulletin 2023/**/*.pdf", recursive=True)
 # os.environ['PINECONE_API_KEY'] = "48640420-7e79-46d4-b71d-d07286818fef"
 
 

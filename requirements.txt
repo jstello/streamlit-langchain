@@ -5,3 +5,5 @@ openai
 unstructured
 unstructured[local-inference]
 chromadb
+tiktoken
+tqdm

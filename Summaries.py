@@ -22,7 +22,7 @@ import PyPDF2
 def extract_images(pdf_file):
     folder = pdf_file.split("\\")[-2]
     file_name = pdf_file.split("\\")[-1].replace(".pdf", "")
-    pdf_file = open(pdf_file, 'rb')
+    pdf_file = open(pdf_file.replace('\\', os.sep), 'rb')
     pdf_reader = PyPDF2.PdfReader(pdf_file)
 
     # Create the images directory if it doesn't exist

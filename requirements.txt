@@ -3,3 +3,4 @@ streamlit==1.21.0
 langchain
 openai
 unstructured
+unstructured[local-inference]

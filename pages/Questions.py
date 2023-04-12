@@ -37,7 +37,7 @@ if "pdf_file" not in st.session_state:
     pdf_file = st.session_state["pdf_file"]
 else:
     pdf_file = st.session_state["pdf_file"]
-st.write(pdf_file)
+st.write(pdf_file.replace('/', os.sep))
 if 'title' not in st.session_state:
     st.session_state["title"] = "No title"
     title = st.session_state["title"]
@@ -48,7 +48,7 @@ st.title(title)
 with st.expander("File Name:"):
     st.write(pdf_file)
 
-loader = UnstructuredPDFLoader(files[18])
+loader = UnstructuredPDFLoader(pdf_file.replace('/', os.sep))
 def load_data():
     return loader.load()
 

@@ -42,8 +42,11 @@ else:
     title = st.session_state["title"]
     
 st.title(title.replace('"', ''))
+# Provide a link to the file on github
+file_path = r"https://github.com/jstello/streamlit-langchain/blob/ask-questions-3.5-turbo/" + pdf_file.replace('\\', os.sep)
+
 with st.expander("File Name:"):
-    st.write(pdf_file)
+    st.write(file_path)
 
 loader = UnstructuredPDFLoader(pdf_file.replace('\\', os.sep))
 def load_data():

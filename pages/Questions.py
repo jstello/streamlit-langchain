@@ -1,3 +1,4 @@
+import PyPDF2
 import sys
 print(sys.executable)
 import os
@@ -12,7 +13,7 @@ import glob
 
 files = glob.glob("ICOLD - CFRD New Bulletin 2023/**/*.pdf", recursive=True)
 
-llm = ChatOpenAI(temperature=0, max_tokens=2000)
+llm = ChatOpenAI(temperature=0.5, max_tokens=1000)
 chain = load_qa_chain(llm, chain_type="stuff")
 
 embeddings = OpenAIEmbeddings()
@@ -30,51 +31,48 @@ text_splitter = RecursiveCharacterTextSplitter(
     #     '']
     )
 
-if "pdf_file" not in st.session_state:
-    st.session_state["pdf_file"] = files[0]
-    pdf_file = st.session_state["pdf_file"]
-else:
-    pdf_file = st.session_state["pdf_file"]
-if 'title' not in st.session_state:
-    st.session_state["title"] = "No title"
-    title = st.session_state["title"]
-else:
-    title = st.session_state["title"]
-    
-st.title(title.replace('"', ''))
-# Provide a link to the file on github
-file_path = r"https://github.com/jstello/streamlit-langchain/blob/ask-questions-3.5-turbo/" + pdf_file.replace('\\', os.sep)
-# Replace spaces with %20
-file_path = file_path.replace(' ', '%20')
+if 1==1:  # Session state variables
 
-with st.expander("File Name:"):
-    st.write(file_path)
+    if "pdf_file" not in st.session_state:
+        st.session_state["pdf_file"] = files[0]
+        pdf_file = st.session_state["pdf_file"]
+    else:
+        pdf_file = st.session_state["pdf_file"]
+    if 'title' not in st.session_state:
+        st.session_state["title"] = "No title"
+        title = st.session_state["title"]
+    else:
+        title = st.session_state["title"]
+    if "summary" not in st.session_state:
+        st.session_state["summary"] = "No summary"
+        summary = st.session_state["summary"]
+    else:
+        summary = st.session_state["summary"]
 
-loader = UnstructuredPDFLoader(pdf_file.replace('\\', os.sep))
-def load_data():
-    return loader.load()
+if 1==1:  # Link to file    
+    st.title(title.replace('"', ''))
+    # Provide a link to the file on github
+    file_path = r"https://github.com/jstello/streamlit-langchain/blob/master/" + pdf_file.replace('\\', '/')
+    # Replace spaces with %20
+    file_path = file_path.replace(' ', '%20')
 
-data = load_data()
-# Remove the references section
-data[0].page_content = data[0].page_content.split('References')[0]
+    with st.expander("Link to file:"):
+        st.markdown(f"The original file can be found [here]({file_path})")
 
-def split_documents(_data):
-    return text_splitter.split_documents(data)
+if 1==1:  # Load and split text
+    loader = UnstructuredPDFLoader(pdf_file.replace('\\', os.sep))
+    def load_data():
+        return loader.load()
 
-texts = split_documents(data)
+    data = load_data()
+    # Remove the references section
+    data[0].page_content = data[0].page_content.split('References')[0]
 
-# initialize pinecone
-# pinecone.init(environment='us-central1-gcp', api_key=os.environ['PINECONE_API_KEY'])
-# index_name = "icold"
+    def split_documents(_data):
+        return text_splitter.split_documents(data)
 
-# # Check if the index already exists
-# if not pinecone.index_exists(index_name):
-#     # Create the Pinecone index
-#     pinecone.create_index(index_name, embeddings_dim=embeddings.shape[1])
-#     pinecone.index(index_name, [t.page_content for t in texts], embeddings)
+    texts = split_documents(data)
 
-# Retrieve the Pinecone index
-# docsearch = pinecone.Index(index_name)
 
 db = Chroma.from_documents(texts, embeddings)
 
@@ -83,19 +81,47 @@ def pretty_print(response):
     # Split the response by lines of max 80 characters
     return '\n'.join(textwrap.wrap(response, 80))
 
-if "summary" not in st.session_state:
-    st.session_state["summary"] = "No summary"
-    summary = st.session_state["summary"]
-else:
-    summary = st.session_state["summary"]
 
-st.markdown("## Summary")
-st.success(summary)
+with st.expander("Summary"):
+    st.write(summary)
 
+if 1==1:  # Sample questions
+    query = """
+    Think of 10 technical questions relevant to dam engineering one could ask about this context and return them with 
+    double spaces between them in a bullet list.
+    """
+    docs = db.similarity_search(query)
+    sample_questions = chain.run(input_documents=docs, question=query)
+    with st.expander("Sample questions"):
+        st.write(sample_questions)
+
+if 1==1:  # Display images
+    # display the image in streamlit
+    folder = pdf_file.split("\\")[-2]
+    file_name = pdf_file.split("\\")[-1].replace(".pdf", "")
+
+    image_files = glob.glob(f"images/{folder}/{file_name}/*.png")
+
+    # Filter image files to those with size > 100 KB
+
+    # Sort these files from largest to smallest
+    image_files.sort(key=os.path.getsize, reverse=True)
+
+    # Display 9 images in a 3 x 3 grid
+    with st.expander("Images from the paper"):
+        for i in range(3):
+            cols = st.columns(3)
+            for j in range(3):
+                image_i= i*3 + j
+                try:
+                    cols[j].image(image_files[image_i])
+                except: 
+                    pass
+            
 
 
 query = st.text_input("Ask a question of this PDF: (Puede ser en español!)", "")
-if query != "":
+if query != "":  # Ask questions of the paper
     docs = db.similarity_search(query)
     # docs = docsearch.similarity_search(query, include_metadata=True)
     response = chain.run(input_documents=docs, question=query)

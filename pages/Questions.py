@@ -11,8 +11,6 @@ from langchain.vectorstores import Chroma
 import glob
 
 files = glob.glob("ICOLD - CFRD New Bulletin 2023/**/*.pdf", recursive=True)
-st.write(files[0])
-st.write(f"The operating system separator is {os.sep}")
 
 llm = ChatOpenAI(temperature=0, max_tokens=2000)
 chain = load_qa_chain(llm, chain_type="stuff")
@@ -44,7 +42,7 @@ if 'title' not in st.session_state:
 else:
     title = st.session_state["title"]
     
-st.title(title)
+st.title(title.replace('"', ''))
 with st.expander("File Name:"):
     st.write(pdf_file)
 
@@ -92,7 +90,7 @@ st.success(summary)
 
 
 
-query = st.text_input("Ask a question of this PDF: ", "")
+query = st.text_input("Ask a question of this PDF: (Puede ser en español!)", "")
 if query != "":
     docs = db.similarity_search(query)
     # docs = docsearch.similarity_search(query, include_metadata=True)

@@ -7,20 +7,20 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredPDFLoader
-from langchain.vectorstores import Pinecone
+from langchain.vectorstores import Pinecone, Chroma
 import pinecone
 
-os.environ['PINECONE_API_KEY'] = "48640420-7e79-46d4-b71d-d07286818fef"
+# os.environ['PINECONE_API_KEY'] = "48640420-7e79-46d4-b71d-d07286818fef"
 
 
-
-llm = ChatOpenAI(temperature=0, openai_api_key="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", max_tokens=800)
+# os.environ['OPENAI_API_KEY'] = "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"
+llm = ChatOpenAI(temperature=0, max_tokens=2000)
 chain = load_qa_chain(llm, chain_type="stuff")
 
-embeddings = OpenAIEmbeddings(openai_api_key="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")
+embeddings = OpenAIEmbeddings()
 
 text_splitter = RecursiveCharacterTextSplitter(
-    chunk_size=1000, 
+    chunk_size=2000, 
     chunk_overlap=20,
     # separators=[
     #     'Abstract',
@@ -45,61 +45,61 @@ else:
     title = st.session_state["title"]
     
 st.title(title)
+with st.expander("File Name:"):
+    st.write(pdf_file)
 
 loader = UnstructuredPDFLoader(pdf_file)
-@st.cache_data()
 def load_data():
     return loader.load()
 
 data = load_data()
+# Remove the references section
+data[0].page_content = data[0].page_content.split('References')[0]
 
-@st.cache_data()
 def split_documents(_data):
     return text_splitter.split_documents(data)
 
 texts = split_documents(data)
 
 # initialize pinecone
-pinecone.init(environment='us-central1-gcp', api_key=os.environ['PINECONE_API_KEY'])
-index_name = "icold"
+# pinecone.init(environment='us-central1-gcp', api_key=os.environ['PINECONE_API_KEY'])
+# index_name = "icold"
 
-# Check if the index already exists
-if not pinecone.index_exists(index_name):
-    # Create the Pinecone index
-    pinecone.create_index(index_name, embeddings_dim=embeddings.shape[1])
-    pinecone.index(index_name, [t.page_content for t in texts], embeddings)
+# # Check if the index already exists
+# if not pinecone.index_exists(index_name):
+#     # Create the Pinecone index
+#     pinecone.create_index(index_name, embeddings_dim=embeddings.shape[1])
+#     pinecone.index(index_name, [t.page_content for t in texts], embeddings)
 
 # Retrieve the Pinecone index
-docsearch = pinecone.Index(index_name)
+# docsearch = pinecone.Index(index_name)
 
+db = Chroma.from_documents(texts, embeddings)
 
 def pretty_print(response):
     import textwrap
     # Split the response by lines of max 80 characters
     return '\n'.join(textwrap.wrap(response, 80))
 
-
-
 summary = st.session_state["summary"]
 
 st.markdown("## Summary")
 st.success(summary)
 
-query = st.text_input("Ask a question of this PDF: ", "")
-# @st.cache_data()
-def run_chain(query, docs):
-    return chain.run(input_documents=docs, question=query)
 
+
+query = st.text_input("Ask a question of this PDF: ", "")
 if query != "":
-    docs = docsearch.similarity_search(query, include_metadata=True)
-    # response = run_chain(query, docs)
-    # st.success(pretty_print(response))
-    e1 = st.expander("Relevant documents")    
+    docs = db.similarity_search(query)
+    # docs = docsearch.similarity_search(query, include_metadata=True)
+    response = chain.run(input_documents=docs, question=query)
+    st.success(pretty_print(response))
+    e1 = st.expander("Relevant fragments from the PDF:")    
     for i, doc in enumerate(docs):
         e1.write(f"Relevant document # {i}:")
         e1.write(doc.page_content.replace("\n\n", "\n "))
 
     
-e2 = st.expander("Full text")
-e2.write(data[0].page_content.replace("\n\n", "\n "))
+e2 = st.expander("Full text head")
+e2.write(data[0].page_content.replace("\n\n", "\n ")[0:10000])
     

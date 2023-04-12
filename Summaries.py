@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import streamlit as st
 st.title("PDF Summarization Web App")
@@ -12,7 +13,7 @@ with st.expander("About"):
         a particular paper to read.
         """
         )
-    
+
 df = pd.read_csv("summary2.csv")
 
 if "cat_index" not in st.session_state:

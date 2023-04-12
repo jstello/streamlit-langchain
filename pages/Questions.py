@@ -12,6 +12,7 @@ import glob
 
 files = glob.glob("ICOLD - CFRD New Bulletin 2023/**/*.pdf", recursive=True)
 st.write(files[0])
+st.write(f"The operating system separator is {os.sep}")
 
 llm = ChatOpenAI(temperature=0, max_tokens=2000)
 chain = load_qa_chain(llm, chain_type="stuff")

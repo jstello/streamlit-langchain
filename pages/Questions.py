@@ -35,7 +35,6 @@ if "pdf_file" not in st.session_state:
     pdf_file = st.session_state["pdf_file"]
 else:
     pdf_file = st.session_state["pdf_file"]
-st.write(pdf_file.replace('/', os.sep))
 if 'title' not in st.session_state:
     st.session_state["title"] = "No title"
     title = st.session_state["title"]

@@ -44,6 +44,8 @@ else:
 st.title(title.replace('"', ''))
 # Provide a link to the file on github
 file_path = r"https://github.com/jstello/streamlit-langchain/blob/ask-questions-3.5-turbo/" + pdf_file.replace('\\', os.sep)
+# Replace spaces with %20
+file_path = file_path.replace(' ', '%20')
 
 with st.expander("File Name:"):
     st.write(file_path)

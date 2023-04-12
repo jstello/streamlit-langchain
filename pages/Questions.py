@@ -11,7 +11,8 @@ from langchain.vectorstores import Chroma
 import glob
 
 files = glob.glob("ICOLD - CFRD New Bulletin 2023/**/*.pdf", recursive=True)
-st.write(files)
+st.write(files[0])
+
 llm = ChatOpenAI(temperature=0, max_tokens=2000)
 chain = load_qa_chain(llm, chain_type="stuff")
 
@@ -35,7 +36,7 @@ if "pdf_file" not in st.session_state:
     pdf_file = st.session_state["pdf_file"]
 else:
     pdf_file = st.session_state["pdf_file"]
-
+st.write(pdf_file)
 if 'title' not in st.session_state:
     st.session_state["title"] = "No title"
     title = st.session_state["title"]

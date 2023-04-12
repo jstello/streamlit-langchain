@@ -48,7 +48,7 @@ st.title(title)
 with st.expander("File Name:"):
     st.write(pdf_file)
 
-loader = UnstructuredPDFLoader(pdf_file.replace('/', os.sep))
+loader = UnstructuredPDFLoader(pdf_file.replace('\\', os.sep))
 def load_data():
     return loader.load()
 

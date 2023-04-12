@@ -7,8 +7,7 @@ from langchain.chains.question_answering import load_qa_chain
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredPDFLoader
-from langchain.vectorstores import Pinecone, Chroma
-import pinecone
+from langchain.vectorstores import Chroma
 
 # os.environ['PINECONE_API_KEY'] = "48640420-7e79-46d4-b71d-d07286818fef"
 

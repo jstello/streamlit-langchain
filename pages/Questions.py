@@ -46,7 +46,7 @@ st.title(title)
 with st.expander("File Name:"):
     st.write(pdf_file)
 
-loader = UnstructuredPDFLoader('./'+pdf_file)
+loader = UnstructuredPDFLoader(files[18])
 def load_data():
     return loader.load()
 
@@ -79,7 +79,11 @@ def pretty_print(response):
     # Split the response by lines of max 80 characters
     return '\n'.join(textwrap.wrap(response, 80))
 
-summary = st.session_state["summary"]
+if "summary" not in st.session_state:
+    st.session_state["summary"] = "No summary"
+    summary = st.session_state["summary"]
+else:
+    summary = st.session_state["summary"]
 
 st.markdown("## Summary")
 st.success(summary)

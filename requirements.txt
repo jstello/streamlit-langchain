@@ -7,3 +7,4 @@ unstructured[local-inference]
 chromadb
 tiktoken
 tqdm
+PyPDF2

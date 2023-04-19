@@ -14,7 +14,7 @@ import glob
 files = glob.glob("ICOLD - CFRD New Bulletin 2023/**/*.pdf", recursive=True)
 
 llm = ChatOpenAI(temperature=0.5, max_tokens=1000)
-chain = load_qa_chain(llm, chain_type="stuff")
+chain = load_qa_chain(llm, chain_type="stuff", verbose=True)
 
 embeddings = OpenAIEmbeddings()
 
@@ -87,7 +87,8 @@ with st.expander("Summary"):
 
 if 1==1:  # Sample questions
     query = """
-    Think of 10 technical questions relevant to dam engineering one could ask about this context and return them with 
+    Think of 10 technical questions relevant to dam engineering one could ask about this context, 
+    meaning that the answer is contained within it, and return them with 
     double spaces between them in a bullet list.
     """
     docs = db.similarity_search(query)

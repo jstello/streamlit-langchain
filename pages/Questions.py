@@ -10,6 +10,25 @@ from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import UnstructuredPDFLoader
 from langchain.vectorstores import Chroma
 import glob
+import firebase_admin
+from firebase_admin import credentials, db
+
+
+
+if 1==1:  # Authenticate firebase
+        
+    @st.cache(allow_output_mutation=True)
+    def init_firebase():
+        cred = credentials.Certificate('cfrd-questions-firebase-adminsdk-saer6-926a4198fb.json')
+        firebase_app = firebase_admin.initialize_app(cred, {
+            'databaseURL': 'https://your-project-id.firebaseio.com'
+        })
+        return firebase_app
+
+    firebase_app = init_firebase()
+    database_ref = db.reference('interactions', app=firebase_app)
+
+
 
 files = glob.glob("ICOLD - CFRD New Bulletin 2023/**/*.pdf", recursive=True)
 

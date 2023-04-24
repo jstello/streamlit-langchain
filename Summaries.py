@@ -6,7 +6,7 @@ import glob
 st.title("PDF Summarization Web App")
 
 with st.expander("About"):
-    st.write(
+    st.info(
         """
         This is a web app that summarizes a pdf paper on the behavior of Concrete Face Rockfill Dams.
         On the Questions page you can ask questions about the paper and get an answer.

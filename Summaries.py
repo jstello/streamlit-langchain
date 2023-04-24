@@ -9,11 +9,16 @@ with st.expander("About"):
     st.info(
         """
         This is a web app that summarizes a pdf paper on the behavior of Concrete Face Rockfill Dams.
-        On the Questions page you can ask questions about the paper and get an answer.
-        They are organized by category and can be selected from the dropdown menu. 
-        The summary was generated using the Chat GPT API from OpenAI. The app is not meant to replace 
-        reading the original paper, but rather to help guide the user in selecting 
-        a particular paper to read.
+        On the Questions page you can ask questions about the paper and get an answer based only
+        on the paper provided, avoiding the dreaded hallucinations of Large Language Models.
+        The papers are organized by category and can be selected from the dropdown menu. 
+        The summaries were generated using the Chat GPT API from OpenAI. 
+        
+        The app is not meant to substitute reading the original paper, but rather to help guide the user in selecting 
+        a particular paper to read. 
+        
+        In the Upload page the user can upload a pdf file and the app will extract the images from it
+        and generate a summary.
         """
         )
     

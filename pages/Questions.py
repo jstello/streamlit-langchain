@@ -21,7 +21,7 @@ if 1==1:  # Authenticate firebase
     def init_firebase():
         cred = credentials.Certificate('cfrd-questions-firebase-adminsdk-saer6-926a4198fb.json')
         firebase_app = firebase_admin.initialize_app(cred, {
-            'databaseURL': 'https://your-project-id.firebaseio.com'
+            'databaseURL': 'https://cfrd-questions.firebaseio.com'
         })
         return firebase_app
 

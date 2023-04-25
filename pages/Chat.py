@@ -8,34 +8,25 @@ if 1==1:  # Imports
     from langchain.chains.question_answering import load_qa_chain
     from langchain.embeddings.openai import OpenAIEmbeddings
     from langchain.text_splitter import RecursiveCharacterTextSplitter
+    from langchain.text_splitter import CharacterTextSplitter
     from langchain.document_loaders import UnstructuredPDFLoader
     from langchain.vectorstores import Chroma
     import glob
     from io import StringIO
     from langchain.chains.summarize import load_summarize_chain
 
-uploaded_file = st.file_uploader("Choose a PDF file", type="pdf")
-text_splitter = RecursiveCharacterTextSplitter(
+st.title("Chat with your pdf")
+file_path = st.text_input("Enter the path to your PDF file: ")
+text_splitter = CharacterTextSplitter(
     chunk_size=2000, 
     chunk_overlap=20,
-    # separators=[
-    #     'Abstract',
-    #     'Introduction',
-    #     'Conclusions',
-    #     '\n\n',
-    #     '\n',
-    #     ' ',
-    #     '']
     )
 
 
-if uploaded_file is not None:
-    # bytes_data = uploaded_file.getvalue()
-    # # st.write(bytes_data)
-    # stringio = StringIO(bytes_data.decode())
-    # st.write(stringio)
+if file_path is not "":
     if 1==1:  # Load and split text
-        loader = UnstructuredPDFLoader(uploaded_file)
+        loader = UnstructuredPDFLoader(file_path)
+        # @st.cache_data
         def load_data():
             return loader.load()
     st.write("Loading data...")
@@ -51,36 +42,49 @@ if uploaded_file is not None:
         
     embeddings = OpenAIEmbeddings()
 
-    from langchain.docstore.document import Document
-
     run_summarization = st.button("Run summarization")
+    
     if run_summarization:
         llm = ChatOpenAI(temperature=0.5, max_tokens=400)
         chain = load_summarize_chain(llm, chain_type="map_reduce")
         st.write("Running summarization...")
         summary = chain.run(texts[:5])
         st.success(summary)
-# db = Chroma.from_documents(texts, embeddings)
 
-# def pretty_print(response):
-#     import textwrap
-#     # Split the response by lines of max 80 characters
-#     return '\n'.join(textwrap.wrap(response, 80))
+    # st.write(f"type(texts): {type(texts)}")
+    # st.write(f"type(texts[0]): {type(texts[0])}")
+    db = Chroma.from_documents(texts, embeddings)
 
-
-# with st.expander("Summary"):
-#     st.write(summary)
-
-# if 1==1:  # Sample questions
-#     query = """
-#     Think of 10 technical questions relevant to dam engineering one could ask about this context and return them with 
-#     double spaces between them in a bullet list.
-#     """
-#     docs = db.similarity_search(query)
-#     sample_questions = chain.run(input_documents=docs, question=query)
-#     with st.expander("Sample questions"):
-#         st.write(sample_questions)
-
+    from langchain.chains import RetrievalQA
+    if 1==1:  # Sample questions
+    
+        llm = ChatOpenAI(temperature=0.5, max_tokens=400)
+        qa = RetrievalQA.from_chain_type(
+            llm=ChatOpenAI(),
+            chain_type="stuff",
+            retriever=db.as_retriever(),
+            return_source_documents=True,
+            )
+        [c1, c2] = st.columns([2, 1])
+        
+        lang = c2.selectbox("Answer in: ", ["en", "es", "fr", "de", "it", "pt", "ru", "sv", "tr", "zh"])
+        
+        I=0
+        query = c1.text_input("Ask a question of this PDF: (Puede ser en español!)", "", key=I)
+        
+        thinking_message = st.empty()
+        while query != "":  # Ask questions of the paper
+            I+=1
+            @st.cache_data
+            def run_retrieval(query):
+                return qa({"query": query + f". Answer in {lang} language", "n": 1})
+            thinking_message.write("Thinking...")
+            result = run_retrieval(query)
+            thinking_message.empty()
+            st.success(result["result"])
+            # st.markdown(f"[Source document]({result['source_documents'][0].metadata['source']})")
+            # Add a new text input field and wait for input
+            query = st.text_input("", "", key=I)
 # if 1==1:  # Display images
 #     # display the image in streamlit
 #     folder = pdf_file.split("\\")[-2]

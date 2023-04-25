@@ -1,0 +1,430 @@
+See discussions, stats, and author profiles for this publication at: https://www.researchgate.net/publication/339414720
+Implementation and Verification of NorSand Model in General 3D Framework
+Conference Paper · February 2020
+DOI: 10.1061/9780784482810.002
+CITATIONS
+0
+READS
+1,219
+2 authors, including:
+Some of the authors of this publication are also working on these related projects:
+FLAC3D View project
+Zhao Cheng
+Itasca Consulting Group, Inc
+35 PUBLICATIONS 432 CITATIONS
+SEE PROFILE
+All content following this page was uploaded by Zhao Cheng on 05 March 2021.
+The user has requested enhancement of the downloaded file.Geo-Congress 2020 GSP 318 10
+© ASCE
+Implementation and Verification of NorSand Model in General 3D Framework
+Zhao Cheng, Ph.D., P.E., M.ASCE1; and Michael Jefferies, P.Eng.2
+1Itasca Consulting Group, Inc., Minneapolis, MN. E-mail: zcheng@itascacg.com
+2Consulting Engineer, Lincoln, U.K. E-mail: geomek@hotmail.com
+ABSTRACT
+NorSand is a critical state (plasticity) model for soils in which particle to particle interactions
+are controlled by contact forces and slips. The state parameter allows capturing soil behavior
+over a wide range of confining stresses and densities using relatively few and familiar soil
+properties that can be determined from the routine laboratory or in situ tests. This paper presents
+the implementation of NorSand in the leading geotechnical software platform FLAC3D. This
+implemented version includes the usual three-dimensional aspects allowing for the proportion of
+intermediate principal stress as well as the far less common feature of principal stress rotation;
+these aspects allow simulation of cyclic mobility as well as static liquefaction. The results are
+cross-verified with a VBA-coded spreadsheet for simulations of various densities, drainage
+conditions, and test types, including triaxial compression and simple shear.
+INTRODUCTION
+Many geotechnical failures cannot be predicted by simple constitutive models for soils,
+including the typical brittle strength-loss (static liquefaction) of a loose soil structure being oversurcharged, slope-steepened, or subject to rising pore pressure. The importance of modern
+computational soil mechanics has become evident in the past few years where only this approach
+was able to show how and why two very large dam failures developed, i.e., the failures of
+Fundao (Morgenstern et al. 2016) and Cadia (Morgenstern et al. 2019). But this presents a
+challenge for geotechnical engineers, as commercial software has lagged in offering appropriate
+constitutive models for liquefaction (however it is caused); the cited failure investigations
+adopted a user-defined model that involved specialist skills rarely found in geotechnical practice.
+Clearly, much can be gained by making these modern approaches to soil behavior more
+accessible to geotechnical practice.
+Critical State Soil Mechanics (CSSM) originated in a response of the Corps of Engineers to
+avoid rather frequent failures of hydraulic fill dams pre-1920. CSSM fits within the theory of
+work hardening plasticity, a thread on soil behavior developing over some 100 years with
+contributions from many workers. CSSM has become essentially a mature understanding;
+Jefferies and Been (2016) provide a history of the stages in the development of CSSM. CSSM
+offers: 1) a natural response to the effect of changes in confining stress and void ratio on soil
+behavior through the state parameter; and 2) soil properties that are both familiar and unaffected
+by stress level or soil density. There are several “flavors” of CSSM; the variant used here is the
+NorSand model, which is a strict implementation of Drucker et al. (1957). The original
+“fundamental” derivations are found in Jefferies (1993) with the generalization in Jefferies and
+Shuttle (2002). Despite its name, NorSand can be used for all soils as particle to particle
+interactions that are controlled by contact forces and slips rather than bonds. The theory has no
+concept of “geology”; NorSand was used to represent loose silt liquefaction for both Fundao and
+Cadia analyses.
+FLAC is an explicit finite-difference program widely used in geotechnical engineering and
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 11
+© ASCE
+was adopted for the analysis of the Fundao and Cadia failures. NorSand was used as a userdefined model in these analyses, which is less than optimal in terms of speed and convenience.
+The upcoming release of FLAC (Itasca 2019a) version 8.1 and FLAC3D (Itasca 2019b) version
+7.0 now include NorSand as a built-in soil model. Full benefits of FLAC, including fluidmechanical coupling and large-strain mode with updating of the grid applies to the implemented
+NorSand model. Here we describe the implementation of NorSand in FLAC3D, including
+features such as principal stress rotation. Verifications and illustration examples are presented.
+FORMULATIONS
+Both stress and strain are assumed positive in tension and negative for compression
+following the convention of the software platform. Pressures (e.g., mean pressure, pore pressure)
+are assumed positive in compression. If not explicitly stated otherwise, the stresses and material
+properties are “effective” by default. The superscripts e and p denote the elastic and plastic
+parts, respectively.
+Elasticity: In this implementation version, the elasticity assumes the elastic shear G and
+bulk modulus K are
+ 
+ 
+2 1
+3 1 2
+,
+m
+ref
+ref
+p v
+G G K G
+p v
+  
+     
+  
+(1)
+respectively, where p is the current mean pressure, pref is a reference pressure (usually and by
+default, 100 kPa), Gref is the reference shear modulus at the reference pressure, m is a material
+constant with a physical range of 0 1   m , and v is the Poisson’s ratio, which is considered a
+material constant. For m  0, G G  ref , which corresponds to a constant elastic shear modulus.
+For m 1, G G p p I p    ref ref r /  , which corresponds to an elastic shear modulus being linear
+to the current p with a constant shear rigidity I G p p ref ref  / .
+Critical State and Image State: The critical state requires Dp  0 and D e p p / 0 q  , where
+the dilatancy D p is defined as D e e p p p  v q / with evp and eqp being the rate of the plastic
+volumetric and deviatoric strain, respectively. If only Dp  0, then this is an image state
+(denoted by the subscript i ), variously also referred to as the pseudo steady state or phase change
+condition. The critical state locus (CSL) can be the traditional one defined by a two-parameter
+semi-logarithmic form:
+e p ln p c       (2)
+where Γ and  are material constants, with p being the mean effective stress. However, many
+soils are not well represented by Equation (2) and a power-law form is popular in such instances:
+ 
+Cc
+c a b
+ref
+p
+e p C C
+p
+ 
+     
+ 
+(3)
+where
+a
+C , Cb , and Cc are now the material constants defining the CSL.
+State Parameter: The state parameter (Been and Jefferies 1985) is defined as the difference
+of the current void ratio, e , and the void ratio at the critical state, ec , calculated by Equation (2)
+or (3) at the current pressure p :
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 12
+© ASCE
+   e e p c   (4)
+Yield Surface: The outer yield surface (Figure 1) of the NorSand model has the familiar
+bullet-like shape of the original Cam-Clay model, which is expressed by
+1
+i i
+p
+ln
+M p
+  
+   
+ 
+(5)
+where
+pi is called the image stress and controls the size of the yield surface;  q p / , q J  3 2
+and
+J2 is the second invariant of the deviatoric stress tensor; Mi is defined as
+1 i i
+i
+tc
+N
+M M
+M
+   
+   
+ 
+(6)
+and
+Mtc is a material constant representing the value of  at the critical state in triaxial
+compression (hence subscript “tc”); i c i   e e p  ; N is Nova’s (1982) volumetric coupling
+coefficient; and i can be approximated (Jefferies and Been 2016) by    i tc tc tc tc   M M / 
+with
+tc a material constant that captures state-dilatancy. M is the critical friction ratio
+considering the effect of the Lode’s angle  , which is simply expressed (Jefferies and Shuttle
+2011) as
+    1 3
+3 2 4
+tc
+tc tc
+tc
+M
+M M M g M cos
+M
+ 
+ 
+   
+        
+     (7)
+so that M M    tc for    / 6 at the TC condition and M M M    3 / 3 tc tc   for
+    / 6 at the TE (triaxial extension) condition.
+Hardening Rule: The image stress pi controls the size of the yield surface by the hardening
+rule
+2
+.
+,
+i i i max i p
+q S PSR
+i i tc i
+p M p p p
+H ST T
+p M p p p
+
+   
+       
+   
+(8)
+where the hardening modulus is defined by H H H   0 y with H0 and H y being material
+constants. The hardening limit
+pi max ,  is defined as p pexp M i max i i i tc ,  ,      / , which
+corresponds to L (see Figure 1) and defines an inner surface.
+The additional cap softening term TS in Equation (8) is optional (by setting 0 1   S ). TS is
+found necessary to deal with rapidly changing mean effective stress during undrained tests
+(Jefferies and Been 2016). In this implemented version, TS is
+,
+1
+p v
+L
+S
+i
+i tc
+K p
+T
+ M
+
+
+ 
+  
+  
+  
+
+ 
+    
+ 
+(9)
+The last term, TPSR (Jefferies et al. 2015), in Equation (8) captures the effects of principal
+stress rotation (PSR):
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 13
+© ASCE
+1 1
+i
+PSR i
+p
+T Z
+p r r
+
+
+
+   
+       
+   
+(10)
+where Z is a material constant, r  exp 1  is the yield surface spacing ratio, and α is the current
+included angle between the direction of major principal stress and z-coordinate frame of
+reference in the 3D version. To capture the cyclic mobility in a dynamic simulation, Z should be
+input as a positive value.
+Figure 1: Illustration of NorSand yield surfaces and image stress.
+IMPLMENTATION
+FLAC3D uses the elastic predictor – plastic corrector (EP-PC) method for plasticity. The
+strain increment is additively decomposed into elastic and plastic parts with both plastic and
+elastic principal strain increments assumed coaxial with the current principal stress. The
+associated flow rule is adopted for plastic evolution. By rearranging the yield function in
+Equation (5) into F q Mp M p p p     i i ln / 0   , we have
+q G e e G e p K e e K e D         3 3 ,  q q q v v v p s p s p          (11)
+where s is the plastic multiplier, which will be determined from the consistency condition.
+Note that in Equation (11),    F q / 1,      F p D M / p i  , and the associated plastic flow
+rule ( e F ij ij      s / ) are used.
+The consistency condition, F  0 , can be expanded into
+0
+i i
+i i
+F F F F
+p q p M
+p q p M
+   
+   
+   
+(12)
+In numerical implementation, the last term involving Mi is a tad tedious and loses generality as
+it depends on the chosen idealization for the critical state function. The Mi term also varies in
+the π-plane as the Lode angle changes. It is both conceptual and practical that, because the last
+term on
+Mi in Equation (12) changes quite slowly compared with other terms, Mi is updated
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 14
+© ASCE
+only at the end of rather than during plastic correction. In other words, Mi is updated one step
+behind the corresponding calculation. In an explicit code like FLAC3D, this error is small
+because the steps are small. Equation (12) can thus be rewritten as
+p i 0
+i
+i
+p
+D p q M p
+p
+   (13)
+by noting that     F p M p p / / i i i . Combining Equations (8), (11), and (13), s can be
+numerically solved. Once s is known, the converged principal stress increments can be
+calculated (Jefferies et al. 2015).
+The NorSand model is a stress-dependent model. Reasonable initial stress should be input the
+first time the NorSand model is assigned. The initial conditions include the initial stress, ij, 0 ,
+initial state, e0 or 0 , and over-consolidation ratio, OCR p p  i i OCR / ,  1  , which is defined in this
+model as the ratio of the current
+pi over the calculated pi OCR ,  1  so that the initial stress is on the
+“virtual” yield surface corresponding to pi OCR ,  1  . The initial stress invariants, p0 , q0 and the
+initial Lode’s angle, 0 , can be calculated from the initial stress. The determination of the initial
+image stress pi, 0 and the stress ratio at the image stress, Mi, 0 , needs an iteration procedure.
+VERIFICATIONS
+Verification checks that the model implementation is mathematically correct and coded
+correctly. Model verification requires the simulated results to be compared with closed-form
+solutions or with different codes developed independently. The NorSand model does not have
+any closed-form solution, so the results simulated at the element level by FLAC3D are compared
+with results from direct Euler integration coded in VBA using an Excel spreadsheet for triaxial
+compression and simple shear.
+Table 1 Properties for the triaxial compression test
+Property Ca Cb Mtc tc N H0 Gref m  pref
+Value 0.9 0.02 1.2 3.5 0.3 300 3e4 1 0.15 100
+Figure 2: Results of simulation by FLAC3D and VBA for undrained triaxial compression
+tests for dense (ψ0  0.05 ) and loose (ψ0  0.05 ) sands.
+Triaxial Compression: The NorSand model is used to simulate the triaxial consolidated
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 15
+© ASCE
+drained and undrained tests with the consolidated stress at 100 kPa. Two cases with different
+initial state parameters are considered to represent sands at dense (0  0.05 ) and loose (
+0  0.05) conditions, respectively. The material properties are listed in Table 1. Figure 2 plots
+the results of simulation by FLAC3D and VBA for drained triaxial compression tests for sands
+with
+ψ 0.05 0   and 0  0.05, respectively. Very close results are found for both the shear
+hardening of dense sand and shear softening of loose sand. Figure 3 plots the results for
+undrained conditions. The dilative behavior for the dense sand and the contractive behavior for
+the loose sand are observed, with excellent agreement between FLAC3D and VBA.
+Figure 3: Results of simulation by FLAC3D and VBA for drained triaxial compression
+tests for dense (ψ0  0.05 ) and loose (ψ0  0.05 ) sands.
+Simple Shear: The NorSand model is used to simulate the undrained simple shear tests with
+the initial effective vertical stress of 100 kPa and
+K0  0.5. Again, two cases with different
+initial state parameters are considered: 0  0.05 representing a loose sand and 0  0.05
+representing a dense sand. The material properties are the same as those listed in Table 1. Figure
+4 plots the results of simulation by FLAC3D and VBA for undrained simple shear tests. Again,
+the agreement between FLAC3D and VBA is good.
+Figure 4: Results of simulation by FLAC3D and VBA for undrained simple shear tests for
+dense (ψ0  0.05 ) and loose (ψ0  0.05) sands.
+Effect of Term
+Ts : This example is to test the optional cap softening term Ts by simulating
+the triaxial undrained tests with the initial isotropic stress at 395 kPa with and without the cap
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 16
+© ASCE
+softening. The material properties are listed in Table 2. Note that in these tests, the stateparameter-dependent hardening modulus ( H y  0 ) and nonlinear stress dependent elastic shear
+modulus ( m 1) are adopted. The initial state parameter is 0  0.1. Also, a slightly overconsolidated ratio (OCR = 1.1) is used, as that is often encountered with test data (presumed to
+be a consequence of common sample preparation protocols). Figure 5 plots the results of
+simulation by FLAC3D and VBA with and without the additional softening term by setting S =
+0 or 1. It is observed that with the softening term, the rate of strength loss with strain is more
+rapid. The results between FLAC3D and VBA match very well.
+Table 2 Properties for the test for effect of term Ts
+Property Ca Cb Mtc tc N H0 H y Gref  pref OCR
+Value 1.2 0.06 1.47 3.2 0.5 75 400 20970 0.15 100 1.1
+Figure 5: Results of simulation by FLAC3D and VBA for undrained triaxial compression
+tests for initial
+ψ0  0.1, with ( S 1) or without ( S  0 ) the cap softening term TS .
+Table 3 Properties for the cyclic DSS test considering PSR effect
+Property Ca Cb Cc S Mtc tc N H0 Gref  pref Z
+Value 0.95 6.2e-4 0.81 1 1.45 3.2 0.43 50 3.82e5 0.15 100 12
+SIMULATION EXAMPLES
+Undrained Cyclic DSS Loading: The NorSand model is used to simulate the undrained
+direct simple shear (DSS) test with the initial effective vertical stress of 100 kPa and K0  0.9.
+The initial state parameter is 0  0.07 . The material properties are listed in Table 3. Note that
+in this test, the critical state line is defined by the three-parameter equation as in Equation (13)
+since
+C 0 c  . The simple shear cyclic magnitude is max = kPa, which corresponds to CSR = 0.1,
+where CSR represents cyclic stress ratio. The effect of PSR is activated by setting a non-zero
+material parameter Z 12 . Figure 6 plots the results of simulated results by FLAC3D compared
+with the measured laboratory data on Fraser River Sand (Sriskandakumar 2004), including
+curves of shear stress vs. effective vertical stress, shear stress vs. shear strain, Ru (defined as
+( ) / p p p 0 0     vs. number of cycles, and Ru vs shear strain. As can be seen in the figure, the
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 17
+© ASCE
+overall cyclic behavior is satisfactory with only a limited number of material parameters.
+Figure 6: Simulated and measured DSS dynamic response considering PSR.
+Figure 7: (a) Shear localization (“shear bands”) in bi-axial loading illustrated by contours
+of state parameter; the undeformed and deformed grids are also plotted. (b) p vs. L L / .
+Strain Localization: A relatively more complicated boundary-value problem simulation is
+illustrated in Figure 7. This is a plain-strain biaxial loading exercise with a grid with dimensions
+of 50×50 in the plane. The left side and the base are roller boundaries, the right side is subjected
+to a constant pressure of 100 kPa, and a fixed velocity boundary (with vertical strain rate of 1e-6)
+is applied at the top surface. The same material properties listed in Table 1 are used. The initial
+state parameter for all zones are 0  0.05 and the stress in the model is isotopically initialized
+to 100 kPa. The loading continues until the vertical displacement ∆L is 10% of the model
+dimension L. Apparent strain localization (shear band) is observed due to the bifurcation of stress
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 18
+© ASCE
+paths. The state parameters in the “shear bands” become positive (dilative status) compared to
+initially negative values. The reactive pressure p at the model top surface versus ∆L/L is plotted
+in Figure 7, where the global softening is well captured. This example demonstrates the
+robustness of the implemented NorSand model.
+SUMMARY
+The updated NorSand model (as per Jefferies et al. 2015) incorporating the general 3D
+formulation with optional softening and principle stress rotation has been implemented in the
+widely used software package FLAC3D. The implementation is verified and validated by a wide
+range of tests with conditions including loose and dense soils, undrained and drained, triaxial
+compression and simple shear, and monotonic and cyclic loading. More complicated case studies
+are not included due to the length limit but hopefully will be presented elsewhere. This work
+provides a tool for practicing engineers to perform comprehensive analysis, including analysis of
+static liquefaction for important soil structures like tailing dams using a constitutive model with
+only a few familiar material properties.
+REFERENCES
+Been, K., and Jefferies, M. G. (1985). “A state parameter for sands.” Géotechnique, 35(2), 99-
+112.
+Drucker, D. C., Gibson, R. E., and Henkel, D. J. (1957). “Soil mechanics and work-hardening
+theories of plasticity.” Trans., ASCE (122), 338-346.
+Itasca (2019a), FLAC — Fast Lagrangian Analysis of Continua, user’s manual, version 8.1,
+Itasca Consulting Group, Inc., Minneapolis, MN.
+Itasca (2019b), FLAC3D —Fast Lagrangian Analysis of Continua in 3 Dimensions, user’s
+manual, version 7.0. Itasca Consulting Group, Inc., Minneapolis, MN.
+Jefferies, M. G. (1993). “Nor-Sand: a simple critical state model for sand.” Géotechnique, 43(1),
+91-103.
+Jefferies, M. G., and Shuttle, D. A. (2002). “Dilatancy in general Cambridge-type models.”
+Géotechnique, 52(9), 625-638.
+Jefferies, M. G., and Shuttle, D. A. (2005). “NorSand: features, calibration and use.” In Soil
+Constitutive models: evaluation, selection, and calibration. 204-236.
+Jefferies, M. G., and Shuttle, D. A. (2011). “On the operating critical friction ratio in general
+stress states.” Géotechnique, 61(8), 709-713.
+Jefferies, M., Shuttle, D., and Been, K. (2015). “Principal stress rotation as cause of cyclic
+mobility.” Geotechnical Research, 2(2), 66-96.
+Jefferies, M., and Been, K. (2016). Soil liquefaction, a critical state approach (second edition).
+Boca Raton, London, New York: CRC Press.
+Morgenstern, N. (chair), Vick, S., Viotti, C., and Watts, B. (2016). Fundão tailings dam review
+panel report on the immediate causes of the failure of the Fundão dam. Samarco S.A., Vale
+S.A.
+Morgenstern, N. R. (chair), Jefferies, M., Van Zyl, D., and Wates, J. (2019). Report on NTSF
+embankment failure. Ashurst, Australia.
+Nova, R. (1982). “A constitutive model for soil under monotonic and cyclic loading.” In Soil
+Mechanics: Transient and Cyclic Loads, G. N. Pande, and O. C. Zienkiewicz, eds.
+Chichester: Wiley.
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.Geo-Congress 2020 GSP 318 19
+© ASCE
+Sriskandakumar, S. (2004). “Cyclic loading response of Fraser sand for validation of numerical
+models simulating centrifuge tests.” Master's thesis, Department of Civil Engineering. The
+University of British Columbia.
+Geo-Congress 2020
+Downloaded from ascelibrary.org by Zhao Cheng on 03/02/20. Copyright ASCE. For personal use only; all rights reserved.
+View publication stats

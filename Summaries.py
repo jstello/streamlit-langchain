@@ -104,19 +104,23 @@ file_name = pdf_file.split("\\")[-1].replace(".pdf", "")
 image_files = glob.glob(f"images/{folder}/{file_name}/*.png")
 
 # Filter image files to those with size > 100 KB
-
+st.write("There are " + str(len(image_files)) + " images in this paper")
 # Sort these files from largest to smallest
 image_files.sort(key=os.path.getsize, reverse=True)
 
+st.write("There are " + str(len(image_files)) + " images in this paper")
+st.write(f"len(image_files)//3 {len(image_files)//3}")
 # Display 9 images in a 3 x 3 grid
-with st.expander("Images from the paper"):
-    for i in range(3):
-        cols = st.columns(3)
+with st.expander("All images from the paper"):
+    cols = {}
+    for i in range(len(image_files)//3):
+        cols[i] = st.columns(3)
         for j in range(3):
             image_i= i*3 + j
             try:
-                cols[j].image(image_files[image_i])
+                cols[i][j].image(image_files[image_i])
             except: 
+                print(f"Error displaying image {image_files[image_i]}")
                 pass
 
 st.session_state["pdf_file"] = pdf_file

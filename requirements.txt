@@ -8,4 +8,5 @@ chromadb
 tiktoken
 tqdm
 PyPDF2
-pinecone
+pinecone-client
+```

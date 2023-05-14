@@ -1,8 +1,24 @@
 import streamlit as st
+import pandas as pd
+import glob
+import os
+
+# list csv files in parent directory
+
+
+summaries = pd.read_csv("summary2.csv")
+# get the base name of file_name
 
 st.title("CFRD Knowledge Base")
-st.info("""I am a knowledgeable chatbot with extensive information about Concrete Face Rockfill Dams (CFRDs). 
-        I can answer questions about CFRDs, and I can also summarize the contents of a PDF file.""")
+st.info("""
+    I am a knowledge base with extensive information about Concrete Face Rockfill Dams (CFRDs).
+    Based on a series of scientific papers spanning the topics of 
+    * Numerical Modelling
+    * Dam Behavior
+    * Seismic Response
+    * Rockfill Behavior
+    * Structural
+        """)
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.vectorstores import Pinecone
@@ -25,7 +41,8 @@ def pretty_print(response):
 from langchain.chat_models import ChatOpenAI
 from langchain.chains import RetrievalQA
 
-temperature = st.slider("Temperature", 0.0, 1.0, 0.5, 0.1)
+temperature = 0.5
+
 llm=ChatOpenAI(temperature=temperature, max_tokens=2000)
 
 docsearch = Pinecone.from_existing_index('icold', embeddings, 
@@ -39,7 +56,7 @@ qa = RetrievalQA.from_chain_type(
     verbose=True,
     )
 
-query = st.text_input("Ask me a question about CFRDs", "What is a CFRD?")
+query = st.text_input("Ask me a question about CFRDs", "What type of damage did the Zipingpu dam endure during the 2008 earthquake?")
 @st.cache_data()
 def run_query(query):
     result = qa({"query": query, "top_k": 5, "max_tokens": 2000})
@@ -49,8 +66,13 @@ if st.button("Ask"):
         result, sources = run_query(query)
         st.success(result)
         # Print sources
-        for source in sources:
+        for isource, source in enumerate(sources):
             file_name = source.metadata['source']
             file_name = os.path.basename(file_name)
-            with st.expander("Source: " + file_name):
+            base_name = file_name.split("\\")[-1]
+            i = [i for i in range(len(summaries)) if base_name in summaries.iloc[i, 0]][0]
+            title = summaries.iloc[i, 1]
+
+            with st.expander(f"[{isource+1}] " + title):
                 st.write(source.page_content.replace("\n", " "))
+

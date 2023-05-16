@@ -5,20 +5,13 @@ import streamlit as st
 import glob
 st.title("PDF Summarization Web App")
 
-with st.expander("About"):
-    st.info(
+# with st.expander("About"):
+st.info(
         """
-        This is a web app that summarizes a pdf paper on the behavior of Concrete Face Rockfill Dams.
-        On the Questions page you can ask questions about the paper and get an answer based only
-        on the paper provided, avoiding the dreaded hallucinations of Large Language Models.
-        The papers are organized by category and can be selected from the dropdown menu. 
-        The summaries were generated using the Chat GPT API from OpenAI. 
-        
-        The app is not meant to substitute reading the original paper, but rather to help guide the user in selecting 
-        a particular paper to read. 
-        
-        In the Upload page the user can upload a pdf file and the app will extract the images from it
-        and generate a summary.
+        This is a web app that summarizes 60+ papers on the behavior of Concrete Face Rockfill Dams.
+        On this page you can select a category and a paper from that category to view its summary.
+        On the CFRD Knowledge Base page you can ask questions about CFRDs and get answers based 
+        on the content of the papers, using an augmented version of ChatGPT. 
         """
         )
     
@@ -103,13 +96,11 @@ file_name = pdf_file.split("\\")[-1].replace(".pdf", "")
 
 image_files = glob.glob(f"images/{folder}/{file_name}/*.png")
 
-# Filter image files to those with size > 100 KB
-st.write("There are " + str(len(image_files)) + " images in this paper")
 # Sort these files from largest to smallest
 image_files.sort(key=os.path.getsize, reverse=True)
 
-st.write("There are " + str(len(image_files)) + " images in this paper")
-st.write(f"len(image_files)//3 {len(image_files)//3}")
+# st.write("There are " + str(len(image_files)) + " images in this paper")
+# st.write(f"len(image_files)//3 {len(image_files)//3}")
 # Display 9 images in a 3 x 3 grid
 with st.expander("All images from the paper"):
     cols = {}

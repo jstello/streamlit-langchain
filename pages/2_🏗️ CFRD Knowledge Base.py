@@ -17,7 +17,7 @@ st.info("""
     * Dam Behavior
     * Seismic Response
     * Rockfill Behavior
-    * Structural
+    * Structural Analysis
         """)
 from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
